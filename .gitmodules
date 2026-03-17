@@ -1,3 +1,6 @@
 [submodule "kubition-remake"]
 	path = kubition-remake
 	url = git@github.com:leexiaohui1997/kubition-remake.git
+[submodule "KuBiTionAdvanture"]
+	path = KuBiTionAdvanture
+	url = https://github.com/YoungKing1212/KuBiTionAdvanture.git
