@@ -12,7 +12,9 @@
 
 ## ✅ 任务清单
 
-### 1. 基础类型定义
+> **状态：已完成** | 完成日期：2026-03-17
+
+### 1. 基础类型定义 ✅
 
 **src/types/game.ts:**
 ```typescript
@@ -158,9 +160,9 @@ export interface PlayerEquipment {
 }
 ```
 
-### 2. 核心数据文件
+### 2. 核心数据文件 ✅
 
-**src/data/items.ts (精简版 - 约30个核心物品):**
+**src/data/items.ts (全量迁移 - 409个物品):**
 ```typescript
 import type { Item } from '@/types/game';
 
@@ -245,7 +247,7 @@ export function getItemName(id: string): string {
 }
 ```
 
-**src/data/monsters.ts (前5层怪物):**
+**src/data/monsters.ts (全量迁移 - 99个怪物):**
 ```typescript
 import type { Monster } from '@/types/game';
 
@@ -413,7 +415,7 @@ export const RECIPES: Record<string, Recipe> = {
 };
 ```
 
-### 3. 数据加载工具
+### 3. 数据加载工具 ✅
 
 **src/utils/dataLoader.ts:**
 ```typescript
@@ -472,14 +474,16 @@ export const DataLoader = {
 
 ### 必须完成的检查项:
 
-- [ ] `src/types/game.ts` 包含所有核心类型定义
-- [ ] `src/types/player.ts` 包含玩家状态类型
-- [ ] `src/data/items.ts` 定义至少 30 个物品
-- [ ] `src/data/monsters.ts` 定义至少 5 个怪物
-- [ ] `src/data/places.ts` 定义至少 3 个地点
-- [ ] `src/data/recipes.ts` 定义至少 5 个配方
-- [ ] `DataLoader.validate()` 运行无报错
-- [ ] TypeScript 编译无错误
+- [x] `src/types/game.ts` 包含所有核心类型定义（ItemType 39种、Monster、Place、Recipe、DungeonFloor 等）
+- [x] `src/types/player.ts` 包含玩家状态类型（StateValue、PlayerState、PlayerEquipment）
+- [x] `src/data/items.ts` 全量迁移 **409** 个物品
+- [x] `src/data/monsters.ts` 全量迁移 **99** 个怪物
+- [x] `src/data/places.ts` 全量迁移 **20** 个地点
+- [x] `src/data/recipes.ts` 全量迁移 **179** 个配方（锻造60+炼金12+科技74+魔法33）
+- [x] `src/data/dungeons.ts` 全量迁移 **16** 层地牢
+- [x] `DataLoader.validate()` 运行无报错
+- [x] TypeScript 编译无错误
+- [x] `npm run build` 构建成功（产物 254KB, gzip 69KB）
 
 ### 验证代码:
 
@@ -506,10 +510,12 @@ function App() {
 
 完成 M1 后，你应该能够：
 
-1. 看到完整的 TypeScript 类型定义
-2. 导入并使用游戏数据
-3. TypeScript 能提供正确的类型提示
-4. 数据验证通过无报错
+1. ~~看到完整的 TypeScript 类型定义~~ ✅
+2. ~~导入并使用游戏数据~~ ✅
+3. ~~TypeScript 能提供正确的类型提示~~ ✅
+4. ~~数据验证通过无报错~~ ✅
+
+**全部检查点已通过。**
 
 ---
 
@@ -521,4 +527,4 @@ function App() {
 
 ---
 
-*里程碑文档 v1.0 | M1 | 2026-03-17*
+*里程碑文档 v1.1 | M1 已完成 | 2026-03-17*
