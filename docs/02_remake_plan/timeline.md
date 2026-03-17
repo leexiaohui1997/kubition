@@ -111,18 +111,18 @@ const items: Record<string, Item> = { ... };
 
 ---
 
-### M2: 核心机制 (Day 2-3)
+### M2: 核心机制 (Day 2-3) ✅ 已完成
 
 **输入:** 数据定义
 **输出:** 状态管理 + 时间系统 Demo
 
 **具体任务:**
-- [ ] 实现 Zustand store 架构
-- [ ] 玩家状态管理 (HP, PS, Full, Moist)
-- [ ] 时间流逝系统 (tick)
-- [ ] 状态自动恢复机制
-- [ ] 基础 UI 布局 (Header, Main, Log)
-- [ ] 游戏循环框架
+- [x] 实现 Zustand store 架构
+- [x] 玩家状态管理 (HP, PS, Full, Moist)
+- [x] 事件驱动时间推进系统 (advanceTime)
+- [x] 状态自动恢复机制
+- [x] 基础 UI 布局 (Header, Main, Log) — 响应式 PC + 移动端
+- [x] 游戏常量集中管理 (constants/game.ts)
 
 **验证 Demo:**
 ```
