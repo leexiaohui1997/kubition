@@ -14,7 +14,11 @@
 
 ### 1. 场景切换系统
 
-**src/store/sceneStore.ts:**
+> **实际实现说明：** 场景切换没有使用独立的 sceneStore，而是整合进了 `gameStore.ts`。
+> 地点状态（`currentPlace`、`isTraveling`、`travelProgress`、`travelTarget`）统一在 `stores/gameStore.ts` 中管理。
+> 移动进度条逻辑封装在 `hooks/useTravel.ts` Hook 中，TICK 参数集中在 `constants/game.ts`。
+
+**设计参考 (src/store/sceneStore.ts):**
 ```typescript
 import { create } from 'zustand';
 import { PLACES } from '@/data/places';
@@ -68,7 +72,12 @@ export const useSceneStore = create<SceneState & SceneActions>()(
 
 ### 2. 采集系统实现
 
-**src/systems/GatheringSystem.ts:**
+> **实际实现说明：** 采集系统使用纯函数 + Hook 模式实现，而非 Class 模式。
+> - `systems/GatheringSystem.ts` — 纯函数：`checkGatherRequirements`、`executeGather`、`useItem`
+> - `hooks/useGathering.ts` — 采集进度 Hook，TICK 参数从 `constants/game.ts` 导入
+> - 常量抽离：`GATHER_TICK_INTERVAL`、`GATHER_TICK_INCREMENT` → `constants/game.ts`
+
+**设计参考 (src/systems/GatheringSystem.ts):**
 ```typescript
 import { useGameStore } from '@/store/gameStore';
 import { useSceneStore } from '@/store/sceneStore';
@@ -128,7 +137,15 @@ export class GatheringSystem {
 
 ### 3. 背包组件
 
-**src/components/ui/Inventory.tsx:**
+> **实际实现说明：** 背包系统实际实现与设计有以下差异：
+> - 背包使用 `Modal` 通用弹层组件包裹（而非内嵌在侧边栏中），点击 `[I] 背包` 按钮弹出
+> - `components/Inventory.tsx` — 纯内容组件 + `InventoryExtra` 标题栏额外信息组件
+> - `components/Modal.tsx` — 通用弹层（遮罩层、ESC 关闭、入场动画）
+> - `components/ItemTooltip.tsx` — 物品信息浮窗（hover 触发，手动计算定位 + Portal）
+> - 使用 BetterScroll 提供列表滚动
+> - 常量抽离：`ITEM_TYPE_LABEL` → `constants/labels.ts`，`ITEM_TYPE_COLOR` → `constants/styles.ts`
+
+**设计参考 (src/components/ui/Inventory.tsx):**
 ```tsx
 import { useGameStore } from '@/store/gameStore';
 import { ITEMS } from '@/data/items';
@@ -205,7 +222,10 @@ export function Inventory() {
 
 ### 4. 森林场景
 
-**src/components/scenes/ForestScene.tsx:**
+> **实际实现说明：** 森林场景使用 `useGathering` 和 `useTravel` Hook，
+> 并增加了 `GenericScene` 通用场景组件，用于未注册的地点自动渲染。
+
+**设计参考 (src/components/scenes/ForestScene.tsx):**
 ```tsx
 import { GatheringSystem } from '@/systems/GatheringSystem';
 import { useSceneStore } from '@/store/sceneStore';
@@ -294,7 +314,10 @@ export function ForestScene() {
 
 ### 5. 动态场景切换
 
-**src/components/scenes/SceneRouter.tsx:**
+> **实际实现说明：** SceneRouter 从 `gameStore` 读取状态（非独立 sceneStore），
+> 同时集成了移动进度条和采集进度条的覆盖层显示。
+
+**设计参考 (src/components/scenes/SceneRouter.tsx):**
 ```tsx
 import { useSceneStore } from '@/store/sceneStore';
 import { TownScene } from './TownScene';
@@ -322,7 +345,10 @@ export function SceneRouter() {
 
 ### 6. 更新 App.tsx
 
-**src/App.tsx:**
+> **实际实现说明：** 背包使用 Modal 弹层，而非切换侧边栏内容。
+> 没有使用 `useGameLoop` Hook（时间由事件驱动推进）。
+
+**设计参考 (src/App.tsx):**
 ```tsx
 import { useGameLoop } from '@/hooks/useGameLoop';
 import { StatusBar } from '@/components/layout/StatusBar';
@@ -454,26 +480,27 @@ export function TownScene() {
 ### 验证功能:
 
 1. **场景切换**
-   - [ ] 点击「前往静谧森林」能切换到森林场景
-   - [ ] 移动时有进度条显示
-   - [ ] 移动过程中不能进行其他操作
+   - [x] 点击「前往静谧森林」能切换到森林场景
+   - [x] 移动时有进度条显示
+   - [x] 移动过程中不能进行其他操作
 
 2. **资源采集**
-   - [ ] 在森林能「采集木材」
-   - [ ] 采集消耗体力和时间
-   - [ ] 采集结果随机（2-5个木材）
-   - [ ] 采集结果记录在日志中
+   - [x] 在森林能「采集木材」
+   - [x] 采集消耗体力和时间
+   - [x] 采集结果随机（2-5个木材）
+   - [x] 采集结果记录在日志中
 
 3. **背包系统**
-   - [ ] 采集的物品出现在背包中
-   - [ ] 点击 [I] 能打开背包
-   - [ ] 背包显示物品数量
-   - [ ] 背包有容量限制显示
+   - [x] 采集的物品出现在背包中
+   - [x] 点击 [I] 能打开背包（Modal 弹层方式）
+   - [x] 背包显示物品数量
+   - [x] 背包有容量限制显示
+   - [x] 物品信息浮窗（hover 显示详情）
 
 4. **食物使用**
-   - [ ] 如果有「浆果」或「烤肉」可以食用
-   - [ ] 食用后恢复相应属性
-   - [ ] 食用后物品数量减少
+   - [x] 如果有「浆果」或「烤肉」可以食用
+   - [x] 食用后恢复相应属性
+   - [x] 食用后物品数量减少
 
 ---
 
@@ -501,4 +528,30 @@ export function TownScene() {
 
 ---
 
-*里程碑文档 v1.0 | M3 | 2026-03-17*
+## 📝 实际实现中的重构说明
+
+本里程碑完成过程中，对项目进行了一次常量/类型集中化重构，以提高可维护性：
+
+### 新增的 `constants/` 文件
+
+| 文件 | 用途 | 包含常量 |
+|------|------|----------|
+| `constants/labels.ts` | 中文标签映射 | `EFFECT_LABEL`、`WEAPON_TYPE_LABEL`、`EQUIP_SLOT_LABEL`、`ITEM_TYPE_LABEL` |
+| `constants/styles.ts` | UI 样式映射 | `ITEM_TYPE_COLOR`、`LOG_COLOR`、`STAT_CONFIGS` |
+| `constants/game.ts` (扩展) | 游戏数值 | 新增 `GATHER_TICK_*`、`TRAVEL_TICK_*` 进度条参数 |
+
+### 类型定义调整
+
+- `StatConfig` interface 从 `constants/styles.ts` → `types/player.ts`（类型定义归 types 目录）
+
+### 新增组件
+
+| 组件 | 文件 | 说明 |
+|------|------|------|
+| Modal | `components/Modal.tsx` | 通用弹层（遮罩 + ESC关闭 + 入场动画） |
+| ItemTooltip | `components/ItemTooltip.tsx` | 物品详情浮窗（手动定位 + Portal 到 body） |
+| GenericScene | `components/scenes/GenericScene.tsx` | 通用场景组件（未注册地点自动渲染） |
+
+---
+
+*里程碑文档 v1.1 | M3 | 2026-03-18 | ✅ 已完成*

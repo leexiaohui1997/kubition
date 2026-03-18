@@ -58,12 +58,12 @@
 
 ## 🗓️ 里程碑总览
 
-| 阶段 | 名称 | 交付物 | 预计工期 |
-|------|------|--------|----------|
-| M0 | 项目初始化 | 可运行的空项目 | 0.5天 |
-| M1 | 数据层设计 | 完整的数据定义 | 1天 |
-| M2 | 核心机制 | 状态管理+时间系统 | 1天 |
-| M3 | 资源采集 | 采集系统+背包 | 2天 |
+| 阶段 | 名称 | 交付物 | 预计工期 | 状态 |
+|------|------|--------|----------|------|
+| M0 | 项目初始化 | 可运行的空项目 | 0.5天 | ✅ 已完成 |
+| M1 | 数据层设计 | 完整的数据定义 | 1天 | ✅ 已完成 |
+| M2 | 核心机制 | 状态管理+时间系统 | 1天 | ✅ 已完成 |
+| M3 | 资源采集 | 采集系统+背包 | 2天 | ✅ 已完成 |
 | M4 | 制造系统 | 铁匠铺+炼金台 | 2天 |
 | M5 | 战斗系统 | 战斗引擎+属性 | 2天 |
 | M6 | 地牢探险 | 地牢系统+怪物 | 3天 |
@@ -165,41 +165,55 @@ color: #7f8c8d;
 ```
 src/
 ├── main.tsx                 # App入口
-├── App.tsx                  # 主容器
-├── store/                   # Zustand状态
-│   ├── gameStore.ts         # 游戏主状态
-│   ├── playerStore.ts       # 角色状态
-│   ├── inventoryStore.ts    # 背包状态
-│   └── dungeonStore.ts      # 地牢状态
-├── components/              # React组件
-│   ├── layout/
-│   │   ├── Header.tsx       # 顶部状态栏
-│   │   ├── MainPanel.tsx    # 主面板
-│   │   └── LogPanel.tsx     # 日志面板
-│   ├── scenes/
-│   │   ├── TownScene.tsx    # 城镇场景
-│   │   ├── ForestScene.tsx  # 森林场景
-│   │   ├── CraftScene.tsx   # 制造场景
-│   │   └── CombatScene.tsx  # 战斗场景
-│   └── ui/
-│       ├── TextButton.tsx   # 文字按钮
-│       ├── StatusBar.tsx    # 状态条
-│       └── ItemList.tsx     # 物品列表
-├── data/                    # 游戏数据
-│   ├── items.ts             # 物品定义
-│   ├── monsters.ts          # 怪物定义
-│   ├── places.ts            # 地点定义
-│   └── recipes.ts           # 配方定义
-├── systems/                 # 游戏系统
-│   ├── TimeSystem.ts        # 时间流逝
-│   ├── CombatSystem.ts      # 战斗计算
-│   └── CraftSystem.ts       # 制造逻辑
-├── hooks/                   # 自定义Hooks
-│   ├── useAutoSave.ts       # 自动存档
-│   └── useGameLoop.ts       # 游戏循环
+├── App.tsx                  # 主容器（整体布局骨架）
+├── index.css                # 全局样式（mud-panel/mud-btn/mud-log 等复用类）
+│
+├── stores/                  # Zustand 状态管理
+│   └── gameStore.ts         # 游戏主状态（玩家/背包/装备/日志/时间）
+│
+├── constants/               # 集中管理的常量
+│   ├── game.ts              # 游戏数值常量（状态上限、消耗速率、进度条参数等）
+│   ├── labels.ts            # 中文标签映射（枚举 key → 中文显示名）
+│   └── styles.ts            # UI 样式配置（颜色映射、状态栏配置等）
+│
+├── types/                   # TypeScript 类型定义
+│   ├── index.ts             # 类型导出入口
+│   ├── game.ts              # 游戏数据类型（Item, Monster, Place, Recipe 等）
+│   └── player.ts            # 玩家相关类型（PlayerState, StatConfig 等）
+│
+├── components/              # React 组件
+│   ├── StatusBar.tsx         # 状态栏（四项属性进度条 + 游戏时间 + 警告）
+│   ├── LogPanel.tsx          # 日志面板（BetterScroll 滚动）
+│   ├── Inventory.tsx         # 背包面板（物品列表 + 使用/丢弃）
+│   ├── ItemTooltip.tsx       # 物品信息浮窗（手动定位 + Portal）
+│   ├── Modal.tsx             # 通用弹层组件（遮罩 + 动画）
+│   ├── TownScene.tsx         # 城镇场景（主场景操作入口）
+│   ├── layout/               # 布局组件（预留）
+│   ├── scenes/               # 场景组件
+│   │   ├── SceneRouter.tsx    # 场景路由（动态切换当前场景）
+│   │   ├── TownScene.tsx      # 城镇场景（移动 + 操作）
+│   │   ├── ForestScene.tsx    # 森林场景（采集资源）
+│   │   └── GenericScene.tsx   # 通用场景（溪流/矿洞等）
+│   └── ui/                   # UI 组件（预留）
+│
+├── data/                    # 游戏数据（全量迁移自原作）
+│   ├── items.ts             # 物品定义（409个）
+│   ├── monsters.ts          # 怪物定义（99个）
+│   ├── places.ts            # 地点定义（20个）
+│   ├── recipes.ts           # 制造配方（179个）
+│   └── dungeons.ts          # 地牢数据（16层）
+│
+├── systems/                 # 游戏系统逻辑
+│   └── GatheringSystem.ts   # 采集系统（前置检查 + 掉落计算 + 使用物品）
+│
+├── hooks/                   # 自定义 Hooks
+│   ├── useBetterScroll.ts   # BetterScroll 滚动封装
+│   ├── usePlayerStatus.ts   # 玩家状态检查与警告
+│   ├── useGathering.ts      # 采集进度条逻辑
+│   └── useTravel.ts         # 移动进度条逻辑
+│
 └── utils/                   # 工具函数
-    ├── random.ts            # 随机工具
-    └── storage.ts           # 存储封装
+    └── dataLoader.ts        # 数据加载与交叉引用验证
 ```
 
 ---
@@ -253,4 +267,4 @@ src/
 
 ---
 
-*规划文档 v1.0 | 2026-03-17*
+*规划文档 v1.1 | 2026-03-18 | 更新架构目录树与里程碑进度至 M3 ✅*

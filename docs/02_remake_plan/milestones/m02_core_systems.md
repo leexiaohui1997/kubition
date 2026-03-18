@@ -531,7 +531,36 @@ export function TownScene() {
 }
 ```
 
-### 7. 整合到 App.tsx
+### 7. 常量集中管理架构
+
+在 M3 阶段的重构中，将各组件内散落的常量/配置统一抽离到 `src/constants/` 目录下，按职责分文件管理：
+
+```
+src/constants/
+├── game.ts      ← 游戏数值常量（状态上限、消耗速率、进度条参数等）
+├── labels.ts    ← 中文标签映射（枚举 key → 中文显示名）
+└── styles.ts    ← UI 样式配置（颜色映射、状态栏配置等）
+```
+
+**game.ts** — 游戏数值常量：
+- 状态上限/消耗速率/恢复速率等基础数值
+- `GATHER_TICK_INTERVAL` / `GATHER_TICK_INCREMENT`：采集进度条参数
+- `TRAVEL_TICK_INTERVAL` / `TRAVEL_TICK_INCREMENT`：移动进度条参数
+
+**labels.ts** — 中文标签映射：
+- `EFFECT_LABEL`：效果属性（饱食/水分/生命/体力/理智/体温）
+- `WEAPON_TYPE_LABEL`：武器类型（近战/远程/魔法）
+- `EQUIP_SLOT_LABEL`：装备槽位（头部/身体/手部/脚部/颈部）
+- `ITEM_TYPE_LABEL`：物品类型（食材/武器/装备/材料等 12 种）
+
+**styles.ts** — UI 样式配置：
+- `ITEM_TYPE_COLOR`：物品类型对应的 Tailwind 颜色类
+- `LOG_COLOR`：日志类型对应的文字颜色
+- `STAT_CONFIGS`：四项状态栏配置（标签/key/颜色/低值颜色）
+
+> **类型定义说明**：`StatConfig` interface 定义在 `types/player.ts` 中（与 `PlayerState` 等类型放在一起），`styles.ts` 通过 `import type` 引用。
+
+### 8. 整合到 App.tsx
 
 **src/App.tsx:**
 ```tsx
@@ -620,4 +649,4 @@ export default App;
 
 ---
 
-*里程碑文档 v1.1 | M2 | 2026-03-17 | ✅ 已完成*
+*里程碑文档 v1.2 | M2 | 2026-03-18 | ✅ 已完成（M3 阶段补充 constants 架构说明）*

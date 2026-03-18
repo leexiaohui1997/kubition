@@ -123,6 +123,8 @@ const items: Record<string, Item> = { ... };
 - [x] 状态自动恢复机制
 - [x] 基础 UI 布局 (Header, Main, Log) — 响应式 PC + 移动端
 - [x] 游戏常量集中管理 (constants/game.ts)
+- [x] 常量抽离重构：新增 constants/labels.ts（中文标签映射）、constants/styles.ts（UI 样式映射）
+- [x] 类型组织优化：StatConfig 移至 types/player.ts，进度条参数移至 game.ts
 
 **验证 Demo:**
 ```
@@ -139,18 +141,20 @@ const items: Record<string, Item> = { ... };
 
 ---
 
-### M3: 资源采集 MVP (Day 3-5)
+### M3: 资源采集 MVP (Day 3-5) ✅ 已完成
 
 **输入:** 核心机制
 **输出:** 可采集资源 + 背包系统 Demo
 
 **具体任务:**
-- [ ] 森林场景实现
-- [ ] 资源点数据结构
-- [ ] 采集动作逻辑
-- [ ] 背包系统 (存储、整理)
-- [ ] 物品使用 (食物恢复)
-- [ ] 采集动画/反馈
+- [x] 森林场景实现（ForestScene + GenericScene 通用场景组件）
+- [x] 资源点数据结构（ResourceNode 类型 + places.ts 数据）
+- [x] 采集动作逻辑（GatheringSystem + useGathering Hook，进度条反馈）
+- [x] 背包系统（Modal 弹层 + BetterScroll 滚动 + 物品类型颜色标签）
+- [x] 物品使用（食物恢复属性 + 使用确认）
+- [x] 采集动画/反馈（进度条 + 日志输出 + 物品浮窗 Tooltip）
+- [x] 场景切换与移动系统（SceneRouter + useTravel Hook，移动进度条）
+- [x] 物品信息浮窗（ItemTooltip，手动定位 + Portal 方案）
 
 **验证 Demo:**
 ```
@@ -460,4 +464,4 @@ M4 制造 ────────┘           M7 探索
 
 ---
 
-*时间表 v1.0 | 2026-03-17*
+*时间表 v1.1 | 2026-03-18 | M3 已完成*
