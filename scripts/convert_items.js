@@ -12,6 +12,42 @@ const content = fs.readFileSync(dataPath, 'utf-8');
 // 用 eval 解析原始 JS 数据
 eval(content);
 
+/** 原始 type 字符串 → ItemType 枚举成员名的映射 */
+const TYPE_TO_ENUM = {
+  food:               'Food',
+  cooked:             'Cooked',
+  weapon:             'Weapon',
+  equip:              'Equip',
+  met:                'Met',
+  bullet:             'Bullet',
+  poizon:             'Poizon',
+  tool:               'Tool',
+  quest:              'Quest',
+  seed:               'Seed',
+  art:                'Art',
+  special:            'Special',
+  unknownBonus:       'UnknownBonus',
+  bigBoxSizeBonus:    'BigBoxSizeBonus',
+  bagSizeBonus:       'BagSizeBonus',
+  farmSizeBonus:      'FarmSizeBonus',
+  alcoSizeBonus:      'AlcoSizeBonus',
+  trapSizeBonus:      'TrapSizeBonus',
+  wellBonus:          'WellBonus',
+  makeSpeed:          'MakeSpeed',
+  cookerUpdate:       'CookerUpdate',
+  durableUpdate:      'DurableUpdate',
+  magicDurableUpdate: 'MagicDurableUpdate',
+  collectDec:         'CollectDec',
+  trapChance:         'TrapChance',
+  trapGet:            'TrapGet',
+  lockUpdate:         'LockUpdate',
+  securityBox:        'SecurityBox',
+  mapBonus:           'MapBonus',
+  beaconMax:          'BeaconMax',
+  sleepPlace:         'SleepPlace',
+  showerPlace:        'ShowerPlace',
+};
+
 // 辅助函数：将 JS 值转为 TypeScript 字面量字符串
 function toTsValue(val, indent = '    ') {
   if (val === null || val === undefined) return 'undefined';
@@ -46,7 +82,7 @@ let output = `/**
  * 物品数据 - 全量迁移自原始项目 KuBiTionAdvanture/src/data_item.js
  * 本文件由脚本自动生成，请勿手动修改
  */
-import type { Item } from '@/types/game'
+import { Item, ItemType } from '@/types/game'
 
 /** 全部物品数据（不含运行时 id 字段） */
 const ITEMS_RAW: Record<string, Omit<Item, 'id'>> = {\n`;
@@ -59,7 +95,12 @@ for (let i = 0; i < entries.length; i++) {
   const props = Object.entries(item);
   for (let j = 0; j < props.length; j++) {
     const [propKey, propVal] = props[j];
-    output += `    ${formatKey(propKey)}: ${toTsValue(propVal)},\n`;
+    // type 字段转换为 ItemType 枚举引用
+    if (propKey === 'type' && typeof propVal === 'string' && TYPE_TO_ENUM[propVal]) {
+      output += `    ${formatKey(propKey)}: ItemType.${TYPE_TO_ENUM[propVal]},\n`;
+    } else {
+      output += `    ${formatKey(propKey)}: ${toTsValue(propVal)},\n`;
+    }
   }
   
   output += `  },\n`;

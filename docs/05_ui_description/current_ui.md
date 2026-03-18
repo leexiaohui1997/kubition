@@ -1,6 +1,6 @@
 # 当前 UI 界面描述
 
-> 文档更新时间：2026-03-18（M3 阶段完成后更新）  
+> 文档更新时间：2026-03-18（M4 阶段完成后更新）  
 > 基于源码版本：`kubition-remake/src`  
 > 本文档以自然语言描述当前项目中已实现的所有 UI 界面元素、布局结构、视觉风格和交互行为。
 
@@ -189,6 +189,10 @@
 - 提示文字：`"采集中..."`，绿色（`text-mud-success`），带闪烁动画。
 - 进度条：同上结构，绿色填充（`bg-mud-success`）。
 
+**制造进度条**（`isCrafting` 为 true 时）：
+- 提示文字：`"制造中..."`，金色（`text-mud-accent`），带闪烁动画。
+- 进度条：同上结构，金色填充（`bg-mud-accent`）。
+
 ---
 
 ### 4.4 城镇场景（TownScene）
@@ -226,6 +230,8 @@
 | `[1] 休息一会儿` | 蓝色（`text-mud-info`） | 恢复 20 体力 + 成功日志 + 推进 2 小时 |
 | `[2+] 资源采集` | 蓝色（`text-mud-info`） | 基于 `PLACES.town.resources` 数据动态生成，触发采集进度条 |
 | `[N] 前往静谧森林` | 橙色（`text-mud-warning`） | 触发移动进度条，到达后切换到森林场景 |
+| `[N] 进入铁匠铺` | 蓝色（`text-mud-info`） | 切换到铁匠铺场景（`SmithScene`） |
+| `[N] 进入炼金台` | 蓝色（`text-mud-info`） | 切换到炼金台场景（`AlchemyScene`） |
 
 ---
 
@@ -244,11 +250,128 @@
 
 ---
 
+### 4.5b 铁匠铺场景（SmithScene）
+
+**文件**：`src/components/scenes/SmithScene.tsx`
+
+铁匠铺场景，展示 `smith` 分类的制造配方。视觉结构与城镇场景一致。
+
+- **场景标题**：`"铁匠铺"`，金色，`text-lg` 粗体。
+- **场景描述**：MUD 风格文字描述，暗灰色小字号。
+- **配方列表**：嵌入 `RecipeList` 组件，展示 `smith` 类配方（武器、工具、装备等）。
+- **返回按钮**：`[N] 返回银溪镇`，橙色，触发移动进度条返回城镇。
+
+---
+
+### 4.5c 炼金台场景（AlchemyScene）
+
+**文件**：`src/components/scenes/AlchemyScene.tsx`
+
+炼金台场景，展示 `alchemy` 分类的制造配方。视觉结构与铁匠铺场景一致。
+
+- **场景标题**：`"炼金台"`，金色，`text-lg` 粗体。
+- **配方列表**：嵌入 `RecipeList` 组件，展示 `alchemy` 类配方（药水、食物等）。
+- **返回按钮**：`[N] 返回银溪镇`，橙色，触发移动进度条返回城镇。
+
+---
+
 ### 4.6 通用场景（GenericScene）
 
 **文件**：`src/components/scenes/GenericScene.tsx`
 
 当某个地点没有专属场景组件时，基于地点数据（`PLACES[placeId]`）自动生成 UI。包含场景名称、描述、资源采集按钮、返回城镇按钮。结构与 `ForestScene` 完全一致，确保所有地点都有可用界面。
+
+---
+
+### 4.6b 物品名称组件（ItemName）
+
+**文件**：`src/components/ItemName.tsx`
+
+通用物品名称展示组件，根据物品 ID 从数据层查找物品信息，并以对应类型颜色渲染名称。
+
+- **颜色**：根据物品类型从 `ITEM_TYPE_COLOR` 常量取色（食材绿、武器红、装备蓝等）。
+- **截断**：支持 `truncate` 属性，开启时超长名称以省略号截断（用于背包列表等空间有限场景）。
+- **降级**：若物品 ID 不存在于数据层，显示原始 ID 字符串（暗灰色）。
+- **使用场景**：背包物品行、配方列表（名称/材料/所需科技）、物品浮窗等所有需要展示物品名称的地方统一使用此组件。
+
+---
+
+### 4.6c 配方列表组件（RecipeList）
+
+**文件**：`src/components/ui/RecipeList.tsx`
+
+展示指定分类的配方列表，负责数据计算和三态分组排序，渲染委托给 `RecipeItem` 子组件。
+
+#### 三态分组排序
+
+配方按以下优先级排序展示：
+
+1. **可制作**（`craftable`）：材料充足且科技已解锁
+2. **材料不足**（`missing`）：科技已解锁但材料不够
+3. **未解锁**（`locked`）：所需科技尚未研究
+
+#### 空状态
+
+无配方时显示 `"暂无可用配方"`，暗灰色极小字号。
+
+---
+
+### 4.6d 配方条目组件（RecipeItem）
+
+**文件**：`src/components/ui/RecipeItem.tsx`
+
+单个配方的展示单元，深色面板容器（次级背景 + 暗灰边框 + 圆角 + 内边距 `px-3 py-2`）。
+
+#### 主行结构
+
+```
+[🔒] 物品名称（Xh）          [获得材料]  [制作]
+```
+
+- **锁定图标**：仅 `locked` 状态显示 🔒 前缀。
+- **物品名称**：使用 `ItemName` 组件渲染，带类型颜色。
+- **耗时**：`（Xh）`，暗灰色极小字号，紧跟名称后。
+- **整行透明度**：`missing` 状态 `opacity-60`，`locked` 状态 `opacity-40`。
+
+#### 调试按钮【获得材料】
+
+仅在 `DEBUG_MODE = true` 时显示，位于主行右侧：
+- 样式：橙色边框（`border-amber-600`）+ 橙色文字（`text-amber-500`），hover 时橙色背景填充。
+- 点击效果：遍历配方所需材料，逐个调用 `addItem` 加入背包，并写入 `warning` 类型日志：`获得材料：xxx x2、yyy x1`。
+
+#### 制作按钮【制作】
+
+位于主行最右侧：
+- **可制作且未禁用**：主题色边框（`border-mud-primary`）+ 主题色文字，hover 时背景填充，`cursor-pointer`。
+- **不可制作或操作禁用**：暗灰色边框 + 暗灰文字，`cursor-not-allowed`。
+- 点击触发 `onCraft(recipe)` 回调，由 `useCrafting.startCraft` 处理。
+
+#### 材料需求行
+
+```
+材料：木材 x3 / 石块 x5
+```
+
+- 暗灰色极小字号，`/` 分隔各材料。
+- 每个材料名称使用 `ItemName` 组件渲染（带类型颜色）。
+
+#### 缺少材料提示（仅 missing 状态）
+
+```
+缺少：木材 x2、石块 x3
+```
+
+- 红色（`text-mud-danger`）极小字号，`、` 分隔。
+- 材料名称同样使用 `ItemName` 组件渲染。
+
+#### 科技锁定提示（仅 locked 状态）
+
+```
+需要科技：制作速度 Lv.1
+```
+
+- 橙色（`text-mud-warning`）极小字号。
+- 科技名称使用 `ItemName` 组件渲染。
 
 ---
 
@@ -371,10 +494,21 @@ PC 端占主内容区右侧 1/3 宽度，深色面板容器（`p-3`），纵向 
 
 深色面板（`bg-mud-bg-secondary`），暗灰边框，圆角，最大宽度 `max-w-64`，等宽字体极小字号。
 
+**首行：名称 + 类型（同行显示）**
+
+```
+石斧  [武器]
+```
+
+- **物品名称**：`text-sm` 粗体，浅灰色（`text-mud-text`）。
+- **类型标签**：`[食材]`、`[武器]` 等，`text-[10px]` 粗体，根据物品类型着色（来自 `ITEM_TYPE_COLOR`），中文名来自 `ITEM_TYPE_LABEL`。
+- 两者通过 `flex items-baseline gap-1.5` 排列在同一行，类型标签基线对齐名称底部。
+
 根据物品类型动态展示不同属性区块：
 
 | 区块 | 条件 | 内容 |
 |------|------|------|
+| 名称 + 类型 | 有 `item.name` 或 `item.type` | 同行展示，名称粗体大字，类型彩色小标签 |
 | 描述 | 有 `item.desc` | 物品描述文字 |
 | 价值 | `item.value > 0` | `"价值: X 金"`，金色标签 |
 | 食物/药剂效果 | 有 `item.effect` | 各属性增减值（正值绿色，负值红色），中文标签来自 `EFFECT_LABEL` |
@@ -459,14 +593,14 @@ PC 端占主内容区右侧 1/3 宽度，深色面板容器（`p-3`），纵向 
 |------|------|----------|
 | `constants/labels.ts` | 中文标签映射 | `EFFECT_LABEL`（效果属性）、`WEAPON_TYPE_LABEL`（武器类型）、`EQUIP_SLOT_LABEL`（装备槽位）、`ITEM_TYPE_LABEL`（物品类型） |
 | `constants/styles.ts` | UI 样式映射 | `ITEM_TYPE_COLOR`（物品类型颜色）、`LOG_COLOR`（日志颜色）、`STAT_CONFIGS`（状态栏配置） |
-| `constants/game.ts` | 游戏数值 | 状态上限/消耗速率、进度条参数（`GATHER_TICK_INTERVAL`、`TRAVEL_TICK_INTERVAL` 等） |
+| `constants/game.ts` | 游戏数值 | 状态上限/消耗速率、进度条参数（`GATHER_TICK_INTERVAL`、`TRAVEL_TICK_INTERVAL` 等）、`DEBUG_MODE`（调试模式开关） |
 
 ---
 
 ## 8. 当前状态说明
 
-- **已实现的组件**：`StatusBar`、`TownScene`、`ForestScene`、`GenericScene`、`SceneRouter`、`LogPanel`、`Modal`、`Inventory`、`ItemTooltip` — 构成完整的 M3 阶段游戏界面。
-- **已有 Hook**：`useBetterScroll`（通用滚动管理）、`usePlayerStatus`（玩家状态检查与警告生成）、`useGathering`（采集进度管理）、`useTravel`（移动进度管理）。
-- **已有系统**：`GatheringSystem`（采集逻辑 + 物品使用逻辑）。
-- **当前场景**：银溪镇（`TownScene`）、静谧森林（`ForestScene`），其他地点通过 `GenericScene` 自动生成界面。
-- **预留目录**：`components/layout/`、`components/ui/` 仍为预留（仅含 `.gitkeep`）。- **当前场景**：仅实现了"银溪镇"一个城镇场景，包含基础操作和测试按钮。
+- **已实现的组件**：`StatusBar`、`TownScene`、`ForestScene`、`GenericScene`、`SmithScene`、`AlchemyScene`、`SceneRouter`、`LogPanel`、`Modal`、`Inventory`、`ItemTooltip`、`ItemName`、`RecipeList`、`RecipeItem` — 构成完整的 M4 阶段游戏界面。
+- **已有 Hook**：`useBetterScroll`（通用滚动管理）、`usePlayerStatus`（玩家状态检查与警告生成）、`useGathering`（采集进度管理）、`useTravel`（移动进度管理）、`useCrafting`（制造进度管理）。
+- **已有系统**：`GatheringSystem`（采集逻辑 + 物品使用逻辑）、`actionGuard`（互斥行动检查工具函数）。
+- **当前场景**：银溪镇（`TownScene`）、静谧森林（`ForestScene`）、铁匠铺（`SmithScene`）、炼金台（`AlchemyScene`），其他地点通过 `GenericScene` 自动生成界面。
+- **调试功能**：`DEBUG_MODE = true` 时，配方条目显示【获得材料】橙色调试按钮，点击后直接将所需材料加入背包并写入警告日志。
